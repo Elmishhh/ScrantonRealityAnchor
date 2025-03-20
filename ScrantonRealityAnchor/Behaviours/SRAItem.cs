@@ -53,21 +53,12 @@ namespace ScrantonRealityAnchor.Behaviours
         public override void GrabItem()
         {
             base.GrabItem();
-            itemDiscarded = false;
-            if (outerGlow.activeSelf)
-            {
-                outerGlow.SetActive(false);
-            }
+            GrabItemServerRpc();
         }
         public override void DiscardItem()
         {
             base.DiscardItem();
-            itemDiscarded = true;
-            if (itemActive)
-            {
-                outerGlow.SetActive(true);
-                StartCoroutine(ExpandOuterGlow());
-            }
+            DropItemServerRpc();
         }
         public override void ItemActivate(bool used, bool buttonDown = true)
         {
@@ -147,6 +138,23 @@ namespace ScrantonRealityAnchor.Behaviours
             if (toggle) { SRA_LoopingAudioSource.Play(); }
             else { SRA_LoopingAudioSource.Stop(); }
         }
+        public void OnDropItem()
+        {
+            itemDiscarded = true;
+            if (itemActive)
+            {
+                outerGlow.SetActive(true);
+                StartCoroutine(ExpandOuterGlow());
+            }
+        }
+        public void OnGrabItem()
+        {
+            itemDiscarded = false;
+            if (outerGlow.activeSelf)
+            {
+                outerGlow.SetActive(false);
+            }
+        }
         public IEnumerator ExpandOuterGlow()
         {
             for (int i = 0; i < 38; i++)
@@ -200,5 +208,30 @@ namespace ScrantonRealityAnchor.Behaviours
             ToggleItem(toggle);
         }
         #endregion
+        #region dropRPCs
+        [ServerRpc]
+        public void DropItemServerRpc()
+        {
+            DropItemClientRpc();
+        }
+        [ClientRpc]
+        public void DropItemClientRpc()
+        {
+            OnDropItem();
+        }
+        #endregion
+        #region grabRPCs
+        [ServerRpc]
+        public void GrabItemServerRpc()
+        {
+            GrabItemClientRpc();
+        }
+        [ClientRpc]
+        public void GrabItemClientRpc()
+        {
+            OnGrabItem();
+        }
+        #endregion
+
     }
 }
